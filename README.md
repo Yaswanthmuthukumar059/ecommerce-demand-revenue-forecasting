@@ -22,8 +22,8 @@ Features
 🖥️ Beautiful web UI powered by FastAPI
 
 Tech Stack
-Python, FastAPI
-Scikit-Learn (AutoML pipeline)
-HTML + JavaScript
-MLflow
+Python, FastAPI, 
+Scikit-Learn (AutoML pipeline), 
+HTML + JavaScript, 
+MLflow, 
 Local execution
