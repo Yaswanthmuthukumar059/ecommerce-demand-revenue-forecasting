@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>E-Commerce Demand & Revenue Predictor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #050816;
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1100px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+    }
+    .card {
+      background: #0b1120;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 12px 35px rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.2);
+    }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    h2 { font-size: 15px; margin: 10px 0; }
+    h3 { font-size: 13px; margin: 10px 0 6px; }
+    label { font-size: 13px; color: #9ca3af; display: block; margin-top: 10px; }
+    input, select {
+      width: 100%;
+      margin-top: 4px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: inherit;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    button {
+      margin-top: 12px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-main {
+      background: linear-gradient(90deg,#4f46e5,#06b6d4);
+      color: #f9fafb;
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid #374151;
+      color: #9ca3af;
+    }
+    .muted { font-size: 12px; color: #9ca3af; }
+    .metric {
+      font-size: 13px;
+      margin-top: 6px;
+    }
+    pre {
+      background: #020617;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      overflow: auto;
+      max-height: 210px;
+    }
+    /* Feature importance bar chart */
+    #featureChart {
+      margin-top: 6px;
+      background: #020617;
+      padding: 8px;
+      border-radius: 8px;
+      max-height: 210px;
+      overflow-y: auto;
+    }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .bar-label {
+      flex: 0 0 140px;
+      font-size: 11px;
+      color: #9ca3af;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-right: 6px;
+    }
+    .bar-outer {
+      flex: 1;
+      background: #111827;
+      border-radius: 999px;
+      overflow: hidden;
+      height: 8px;
+    }
+    .bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg,#4f46e5,#22c55e);
+    }
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- LEFT: INPUT + SIMULATOR -->
+    <div class="card">
+      <h1>E-Commerce Demand & Revenue Forecast</h1>
+      <p class="muted">Laptops & Electronics • AutoML model • Strategy simulation</p>
+
+      <h2>Base Scenario (Current Business Setup)</h2>
+      <div class="row">
+        <div>
+          <label>Price (₹)</label>
+          <input id="price" type="number" value="70000" />
+        </div>
+        <div>
+          <label>Marketing Spend (₹)</label>
+          <input id="marketing" type="number" value="50000" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Discount (%)</label>
+          <input id="discount" type="number" value="10" />
+        </div>
+        <div>
+          <label>Rating (1–5)</label>
+          <input id="rating" type="number" step="0.1" value="4.3" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Season</label>
+          <select id="season">
+            <option>Regular</option>
+            <option>Holiday</option>
+            <option>BackToSchool</option>
+          </select>
+        </div>
+        <div>
+          <label>Product Category</label>
+          <select id="category">
+            <option>Laptop</option>
+            <option>Smartphone</option>
+            <option>Headphone</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-main" id="predictBase">Predict Demand & Revenue</button>
+
+      <p class="metric">
+        Base Predicted Units: <span id="baseUnits">—</span><br/>
+        Base Predicted Revenue: <span id="baseRevenue">—</span>
+      </p>
+
+      <hr style="margin: 14px 0; border-color:#111827"/>
+
+      <h2>What-If Scenario (Strategy Simulation)</h2>
+      <p class="muted">
+        Change any input below (e.g., lower price or increase marketing) and run a new simulation.
+        The model will estimate how demand & revenue could change.
+      </p>
+
+      <div class="row">
+        <div>
+          <label>Scenario Price (₹)</label>
+          <input id="s_price" type="number" value="72000" />
+        </div>
+        <div>
+          <label>Scenario Marketing (₹)</label>
+          <input id="s_marketing" type="number" value="60000" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Scenario Discount (%)</label>
+          <input id="s_discount" type="number" value="15" />
+        </div>
+        <div>
+          <label>Scenario Rating</label>
+          <input id="s_rating" type="number" step="0.1" value="4.0" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Scenario Season</label>
+          <select id="s_season">
+            <option>Regular</option>
+            <option selected>Holiday</option>
+            <option>BackToSchool</option>
+          </select>
+        </div>
+        <div>
+          <label>Scenario Category</label>
+          <select id="s_category">
+            <option selected>Laptop</option>
+            <option>Smartphone</option>
+            <option>Headphone</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-ghost" id="predictScenario">Run What-If Simulation</button>
+        <button class="btn-ghost" id="generateReport">Generate Report (HTML → PDF)</button>
+      </div>
+
+      <p class="metric">
+        Scenario Units: <span id="sUnits">—</span><br/>
+        Scenario Revenue: <span id="sRevenue">—</span><br/>
+        Difference in Units: <span id="diffUnits">—</span><br/>
+        Difference in Revenue: <span id="diffRevenue">—</span>
+      </p>
+
+      <p class="muted" id="strategyText"></p>
+    </div>
+
+    <!-- RIGHT: MODEL INFO & INSIGHTS -->
+    <div class="card">
+      <h2>Model Summary & Insights</h2>
+      <p class="muted">Fetched from backend AutoML training.</p>
+
+      <div class="metric">
+        <b>Model Name:</b> <span id="modelName">—</span><br/>
+        <b>RMSE:</b> <span id="modelRmse">—</span><br/>
+        <b>R²:</b> <span id="modelR2">—</span><br/>
+        <b>Rows:</b> <span id="modelRows">—</span><br/>
+        <b>Features:</b> <span id="modelFeatures">—</span><br/>
+      </div>
+
+      <h3>Top Demand Drivers (Feature Importance)</h3>
+      <div id="featureChart">(loading...)</div>
+
+      <p class="muted" id="bizInsight" style="margin-top:8px;"></p>
+
+      <h3>Raw Meta JSON</h3>
+      <pre id="metaRaw">(loading...)</pre>
+    </div>
+  </div>
+
+<script>
+const API = "http://127.0.0.1:8080";
+
+let globalMeta = null;
+let globalTopFeatures = null;
+let baseResult = null;
+let scenarioResult = null;
+
+async function fetchModelInfo() {
+  try {
+    const res = await fetch(API + "/model-info");
+    const meta = await res.json();
+    globalMeta = meta;
+
+    document.getElementById("metaRaw").textContent = JSON.stringify(meta, null, 2);
+
+    if (meta.model_name) {
+      document.getElementById("modelName").textContent = meta.model_name;
+    }
+    if (meta.metrics) {
+      const rmse = meta.metrics.rmse;
+      const r2 = meta.metrics.r2;
+      document.getElementById("modelRmse").textContent =
+        typeof rmse === "number" ? rmse.toFixed(3) : rmse ?? "—";
+      document.getElementById("modelR2").textContent =
+        typeof r2 === "number" ? r2.toFixed(3) : r2 ?? "—";
+    }
+    if (meta.n_rows !== undefined) {
+      document.getElementById("modelRows").textContent = meta.n_rows;
+    }
+    if (meta.n_features !== undefined) {
+      document.getElementById("modelFeatures").textContent = meta.n_features;
+    }
+    if (meta.top_features) {
+      globalTopFeatures = meta.top_features;
+      renderFeatureChart(globalTopFeatures);
+      generateBusinessInsight(globalTopFeatures);
+    } else {
+      document.getElementById("featureChart").textContent = "No feature importance data.";
+    }
+  } catch (e) {
+    document.getElementById("metaRaw").textContent = "Failed to load model info: " + e.message;
+    document.getElementById("featureChart").textContent = "Failed to load feature importance.";
+  }
+}
+
+function renderFeatureChart(topFeatures) {
+  const container = document.getElementById("featureChart");
+  container.innerHTML = "";
+  if (!topFeatures || !topFeatures.length) {
+    container.textContent = "No feature importance data.";
+    return;
+  }
+  const sorted = topFeatures.slice().sort((a,b)=>a.importance - b.importance);
+  const max = Math.max(...sorted.map(f => f.importance || 0));
+
+  sorted.forEach(f => {
+    const row = document.createElement("div");
+    row.className = "bar-row";
+
+    const label = document.createElement("span");
+    label.className = "bar-label";
+    label.title = f.feature;
+    label.textContent = f.feature;
+
+    const barOuter = document.createElement("div");
+    barOuter.className = "bar-outer";
+
+    const barInner = document.createElement("div");
+    barInner.className = "bar-inner";
+    const widthPct = max > 0 ? (f.importance / max) * 100 : 0;
+    barInner.style.width = widthPct.toFixed(2) + "%";
+
+    barOuter.appendChild(barInner);
+    row.appendChild(label);
+    row.appendChild(barOuter);
+    container.appendChild(row);
+  });
+}
+
+function generateBusinessInsight(topFeatures) {
+  const el = document.getElementById("bizInsight");
+  if (!topFeatures || !topFeatures.length) {
+    el.textContent = "";
+    return;
+  }
+  const sorted = topFeatures.slice().sort((a,b)=>b.importance - a.importance);
+  const names = sorted.map(f => f.feature);
+  const msgs = [];
+
+  if (names[0] && names[0].toLowerCase().includes("price")) {
+    msgs.push("Pricing is the strongest driver of demand. Small price changes can significantly impact units sold and revenue.");
+  }
+  if (names.some(n => n.toLowerCase().includes("marketing_spend"))) {
+    msgs.push("Marketing spend is an important lever. Increasing ad budget in key periods can boost demand.");
+  }
+  if (names.some(n => n.toLowerCase().includes("season_holiday"))) {
+    msgs.push("Holiday season strongly influences demand. Plan promotions around holidays for maximum impact.");
+  }
+  if (names.some(n => n.toLowerCase().includes("discount"))) {
+    msgs.push("Discounts have a noticeable effect. Well-timed offers can move additional volume without fully sacrificing margin.");
+  }
+  if (names.some(n => n.toLowerCase().includes("rating"))) {
+    msgs.push("Product rating matters. Improving quality and customer satisfaction can gradually increase demand.");
+  }
+
+  el.textContent = "Insights: " + (msgs.join(" ") || "Model did not find a single dominant factor; demand is driven by a combination of features.");
+}
+
+async function callPredict(inputs) {
+  const res = await fetch(API + "/predict", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data: inputs })
+  });
+  return res.json();
+}
+
+// Base scenario
+document.getElementById("predictBase").addEventListener("click", async () => {
+  const inputs = {
+    Price: Number(document.getElementById("price").value),
+    Marketing_Spend: Number(document.getElementById("marketing").value),
+    Discount_Percent: Number(document.getElementById("discount").value),
+    Rating: Number(document.getElementById("rating").value),
+    Season: document.getElementById("season").value,
+    Product_Category: document.getElementById("category").value
+  };
+  const res = await callPredict(inputs);
+  if (res.error) {
+    alert("Error: " + res.error);
+    return;
+  }
+  document.getElementById("baseUnits").textContent = res.predicted_units.toFixed(2);
+  document.getElementById("baseRevenue").textContent = "₹ " + res.predicted_revenue.toFixed(2);
+  baseResult = {
+    inputs,
+    units: res.predicted_units,
+    revenue: res.predicted_revenue
+  };
+});
+
+// Scenario
+document.getElementById("predictScenario").addEventListener("click", async () => {
+  const baseUnitsText = document.getElementById("baseUnits").textContent;
+  const baseRevenueText = document.getElementById("baseRevenue").textContent;
+  if (baseUnitsText === "—") {
+    alert("Please run the base prediction first.");
+    return;
+  }
+
+  const baseUnits = parseFloat(baseUnitsText);
+  const baseRev = parseFloat(baseRevenueText.replace(/[^\d.]/g,"")) || 0;
+
+  const inputs = {
+    Price: Number(document.getElementById("s_price").value),
+    Marketing_Spend: Number(document.getElementById("s_marketing").value),
+    Discount_Percent: Number(document.getElementById("s_discount").value),
+    Rating: Number(document.getElementById("s_rating").value),
+    Season: document.getElementById("s_season").value,
+    Product_Category: document.getElementById("s_category").value
+  };
+  const res = await callPredict(inputs);
+  if (res.error) {
+    alert("Error: " + res.error);
+    return;
+  }
+
+  const sUnits = res.predicted_units;
+  const sRev = res.predicted_revenue;
+
+  document.getElementById("sUnits").textContent = sUnits.toFixed(2);
+  document.getElementById("sRevenue").textContent = "₹ " + sRev.toFixed(2);
+  document.getElementById("diffUnits").textContent = (sUnits - baseUnits).toFixed(2);
+  document.getElementById("diffRevenue").textContent = "₹ " + (sRev - baseRev).toFixed(2);
+
+  let strategy = "";
+  if (sRev > baseRev && sUnits >= baseUnits) {
+    strategy = "This scenario increases both revenue and demand. It looks like a strong strategy.";
+  } else if (sRev > baseRev && sUnits < baseUnits) {
+    strategy = "Revenue increases but units drop. This is a high-margin strategy; check if lower volume is acceptable.";
+  } else if (sRev < baseRev && sUnits > baseUnits) {
+    strategy = "Demand increases but revenue drops. This may be useful if your goal is market share rather than immediate profit.";
+  } else {
+    strategy = "Both revenue and demand go down. This strategy is not recommended.";
+  }
+  document.getElementById("strategyText").textContent = strategy;
+
+  scenarioResult = {
+    inputs,
+    units: sUnits,
+    revenue: sRev,
+    diffUnits: sUnits - baseUnits,
+    diffRevenue: sRev - baseRev,
+    message: strategy
+  };
+});
+
+// Report generator (HTML → user prints to PDF)
+document.getElementById("generateReport").addEventListener("click", () => {
+  if (!baseResult) {
+    alert("Please run the base prediction first.");
+    return;
+  }
+  const meta = globalMeta || {};
+  const topFeat = globalTopFeatures || [];
+  const scen = scenarioResult;
+
+  const html = `
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>E-Commerce Forecast Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; color:#111827; }
+    h1,h2,h3 { color:#111827; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 16px; margin-top:18px; }
+    table { border-collapse: collapse; width:100%; margin-top:8px; }
+    th,td { border:1px solid #d1d5db; padding:6px 8px; font-size: 12px; text-align:left; }
+    th { background:#f3f4f6; }
+    .muted { color:#6b7280; font-size:12px; }
+    .tag { display:inline-block; padding:2px 6px; border-radius:999px; background:#e5e7eb; font-size:11px; margin-right:4px;}
+  </style>
+</head>
+<body>
+  <h1>E-Commerce Demand & Revenue Forecast Report</h1>
+  <p class="muted">Generated by AI-based AutoML model for Laptops & Electronics.</p>
+
+  <h2>1. Model Overview</h2>
+  <table>
+    <tr><th>Model Name</th><td>${meta.model_name || "N/A"}</td></tr>
+    <tr><th>RMSE</th><td>${meta.metrics?.rmse?.toFixed ? meta.metrics.rmse.toFixed(3) : meta.metrics?.rmse || "N/A"}</td></tr>
+    <tr><th>R² Score</th><td>${meta.metrics?.r2?.toFixed ? meta.metrics.r2.toFixed(3) : meta.metrics?.r2 || "N/A"}</td></tr>
+    <tr><th>Rows Trained</th><td>${meta.n_rows ?? "N/A"}</td></tr>
+    <tr><th>Feature Count</th><td>${meta.n_features ?? "N/A"}</td></tr>
+    <tr><th>Target Variable</th><td>${meta.target || "Units_Sold"}</td></tr>
+  </table>
+
+  <h2>2. Base Scenario (Current Plan)</h2>
+  <table>
+    <tr><th>Price (₹)</th><td>${baseResult.inputs.Price}</td></tr>
+    <tr><th>Marketing Spend (₹)</th><td>${baseResult.inputs.Marketing_Spend}</td></tr>
+    <tr><th>Discount (%)</th><td>${baseResult.inputs.Discount_Percent}</td></tr>
+    <tr><th>Rating</th><td>${baseResult.inputs.Rating}</td></tr>
+    <tr><th>Season</th><td>${baseResult.inputs.Season}</td></tr>
+    <tr><th>Category</th><td>${baseResult.inputs.Product_Category}</td></tr>
+    <tr><th>Predicted Units Sold</th><td>${baseResult.units.toFixed(2)}</td></tr>
+    <tr><th>Predicted Revenue (₹)</th><td>${baseResult.revenue.toFixed(2)}</td></tr>
+  </table>
+
+  <h2>3. What-If Scenario (Strategy Simulation)</h2>
+  ${scen ? `
+  <table>
+    <tr><th>Scenario Price (₹)</th><td>${scen.inputs.Price}</td></tr>
+    <tr><th>Scenario Marketing (₹)</th><td>${scen.inputs.Marketing_Spend}</td></tr>
+    <tr><th>Scenario Discount (%)</th><td>${scen.inputs.Discount_Percent}</td></tr>
+    <tr><th>Scenario Rating</th><td>${scen.inputs.Rating}</td></tr>
+    <tr><th>Scenario Season</th><td>${scen.inputs.Season}</td></tr>
+    <tr><th>Scenario Category</th><td>${scen.inputs.Product_Category}</td></tr>
+    <tr><th>Scenario Units Sold</th><td>${scen.units.toFixed(2)}</td></tr>
+    <tr><th>Scenario Revenue (₹)</th><td>${scen.revenue.toFixed(2)}</td></tr>
+    <tr><th>Δ Units (Scenario - Base)</th><td>${scen.diffUnits.toFixed(2)}</td></tr>
+    <tr><th>Δ Revenue (₹)</th><td>${scen.diffRevenue.toFixed(2)}</td></tr>
+  </table>
+  <p>${scen.message}</p>
+  ` : `<p class="muted">No what-if scenario was run at the time of report generation.</p>`}
+
+  <h2>4. Top Demand Drivers</h2>
+  <table>
+    <tr><th>Feature</th><th>Importance</th></tr>
+    ${topFeat.map(f => `
+      <tr><td>${f.feature}</td><td>${f.importance.toFixed(6)}</td></tr>
+    `).join("")}
+  </table>
+
+  <h2>5. Business Insights</h2>
+  <p>
+    ${document.getElementById("bizInsight").textContent || "The model did not find a single dominant driver; demand is influenced by a mix of features."}
+  </p>
+
+  <p class="muted">You can export this page as PDF using your browser's Print → Save as PDF option.</p>
+</body>
+</html>
+  `;
+
+  const win = window.open("", "_blank");
+  win.document.write(html);
+  win.document.close();
+});
+
+// init
+fetchModelInfo();
+</script>
+</body>
+</html>
