@@ -22,9 +22,8 @@ Features
 🖥️ Beautiful web UI powered by FastAPI
 
 Tech Stack
-**Component**	            **Technology**
-Backend	              Python, FastAPI
-Machine Learning	    Scikit-Learn (AutoML pipeline)
-UI	                  HTML + JavaScript
-Experiment Tracking	  MLflow
-Deployment	          Local execution
+Python, FastAPI
+Scikit-Learn (AutoML pipeline)
+HTML + JavaScript
+MLflow
+Local execution
